@@ -1,0 +1,147 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// 定义链表节点结构体及其别名
+typedef struct Node* List;
+struct Node {
+    List Next; // 指向下一个节点的指针
+    int z;     // 指数
+    int x;     // 系数
+};
+
+// 读入链表函数
+List Read() {
+    List L = (List)malloc(sizeof(struct Node)); // 创建头节点
+    List head = L; // 保存头节点的指针
+    int n, i = 0;
+    scanf("%d", &n); // 使用标准的 scanf 函数读取多项式项数
+    for (i = 0; i < n; i++) {
+        int x;
+        int z;
+        List t = (List)malloc(sizeof(struct Node)); // 为每一项创建一个新节点
+        scanf("%d %d", &x, &z); // 读取系数和指数
+        t->x = x;
+        t->z = z;
+        L->Next = t; // 将新节点链接到链表末尾
+        L = L->Next; // 移动到链表的下一个位置
+    }
+    L->Next = NULL; // 最后一个节点的指针域置为 NULL
+    return head->Next; // 返回头节点的下一个节点（实际的开始节点）
+}
+
+// 实现多项式加法运算
+List addition(List L1, List L2) {
+    List tmpL1 = L1; // 临时指针遍历 L1
+    List tmpL2 = L2; // 临时指针遍历 L2
+    List add = (List)malloc(sizeof(struct Node)); // 创建结果链表的头节点
+    add->Next = NULL;
+    List head = add; // 保存头节点的指针
+
+    while (tmpL1 && tmpL2) {
+        List t = (List)malloc(sizeof(struct Node)); // 为每个结果项创建新节点
+        if (tmpL1->z == tmpL2->z) { // 如果指数相等，系数相加
+            t->x = tmpL1->x + tmpL2->x;
+            t->z = tmpL1->z;
+            tmpL1 = tmpL1->Next;
+            tmpL2 = tmpL2->Next;
+        } else if (tmpL1->z < tmpL2->z) { // 如果 L2 的指数大，将 L2 节点直接放入结果链表
+            t->x = tmpL2->x;
+            t->z = tmpL2->z;
+            tmpL2 = tmpL2->Next;
+        } else { // 如果 L1 的指数大，将 L1 节点直接放入结果链表
+            t->x = tmpL1->x;
+            t->z = tmpL1->z;
+            tmpL1 = tmpL1->Next;
+        }
+        if (t->x != 0) { // 只在系数不为零时插入节点
+            add->Next = t;
+            add = add->Next;
+        } else {
+            free(t); // 释放系数为零的节点
+        }
+    }
+
+    while (tmpL1) { // 如果 L1 不为空，将剩余节点加入结果链表
+        List t = (List)malloc(sizeof(struct Node));
+        t->x = tmpL1->x;
+        t->z = tmpL1->z;
+        t->Next = NULL;
+        add->Next = t;
+        add = add->Next;
+        tmpL1 = tmpL1->Next;
+    }
+
+    while (tmpL2) { // 如果 L2 不为空，将剩余节点加入结果链表
+        List t = (List)malloc(sizeof(struct Node));
+        t->x = tmpL2->x;
+        t->z = tmpL2->z;
+        t->Next = NULL;
+        add->Next = t;
+        add = add->Next;
+        tmpL2 = tmpL2->Next;
+    }
+
+    return head->Next; // 返回头节点的下一个节点（实际的开始节点）
+}
+
+// 实现多项式乘法运算
+List multiplication(List L1, List L2) {
+    List result = NULL; // 初始化结果链表为空
+
+    for (List tmpL1 = L1; tmpL1; tmpL1 = tmpL1->Next) { // 遍历 L1
+        List tempMul = NULL; // 存放当前 L1 节点与 L2 链表相乘的结果
+        List tail = NULL; // 用于指向 tempMul 的最后一个节点
+
+        for (List tmpL2 = L2; tmpL2; tmpL2 = tmpL2->Next) { // 遍历 L2
+            List t = (List)malloc(sizeof(struct Node));
+            t->x = tmpL1->x * tmpL2->x; // 系数相乘
+            t->z = tmpL1->z + tmpL2->z; // 指数相加
+            t->Next = NULL;
+
+            if (!tempMul) {
+                tempMul = t; // 初始化 tempMul
+            } else {
+                tail->Next = t; // 将新节点链接到 tempMul 的末尾
+            }
+            tail = t; // 更新 tail 指针
+        }
+
+        if (!result) {
+            result = tempMul; // 初始化 result
+        } else {
+            result = addition(result, tempMul); // 将部分结果与当前结果相加
+        }
+    }
+
+    return result; // 返回乘法结果
+}
+
+// 打印链表函数
+void Print(List L) {
+    List t = L;
+    int flag = 1; // 控制空格输出的标志
+    for (; t; t = t->Next) {
+        if (!flag && t->x) // 如果不是第一个非零系数项，输出空格
+            printf(" ");
+        if (t->x) { // 如果系数不为零，输出系数和指数
+            printf("%d %d", t->x, t->z);
+            flag = 0;
+        }
+    }
+    if (flag) { // 如果结果链表为空，输出 "0 0"
+        printf("0 0\n");
+    } else {
+        printf("\n");
+    }
+}
+
+int main() {
+    List L1, L2, add, mul;
+    L1 = Read(); // 读入第一个多项式
+    L2 = Read(); // 读入第二个多项式
+    add = addition(L1, L2); // 计算加法结果
+    mul = multiplication(L1, L2); // 计算乘法结果
+    Print(mul); // 输出乘法结果
+    Print(add); // 输出加法结果
+    return 0;
+}
