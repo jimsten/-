@@ -1,0 +1,39 @@
+List Merge(List L1, List L2) {
+    // 分配一个新的节点作为合并链表的头节点
+    List L = (List)malloc(sizeof(struct Node));
+    // head 用于记录合并链表的头节点，以便最后返回
+    List head = L;
+
+    // 设置指向 L1 和 L2 数据部分的临时指针，跳过头节点
+    List tmpL1 = L1->Next; // 从L1的第一个数据节点开始
+    List tmpL2 = L2->Next; // 从L2的第一个数据节点开始
+
+    // 初始化新链表的头节点的 Next 指针，防止指针异常行为
+    L->Next = NULL;
+
+    // 合并两个链表，直到其中一个链表为空
+    while (tmpL1 && tmpL2) { // 当 tmpL1 和 tmpL2 都不为空时
+        if (tmpL1->Data < tmpL2->Data) { // 比较两个链表当前节点的数据
+            L->Next = tmpL1; // 将较小的数据节点链接到新链表
+            tmpL1 = tmpL1->Next; // 移动 tmpL1 到下一个节点
+        } else {
+            L->Next = tmpL2; // 将较小的数据节点链接到新链表
+            tmpL2 = tmpL2->Next; // 移动 tmpL2 到下一个节点
+        }
+        L = L->Next; // 移动新链表的指针到下一个节点
+    }
+
+    // 合并剩余节点
+    if (tmpL1) { // 如果 L1 有剩余节点，将其链接到新链表
+        L->Next = tmpL1;
+    } else if (tmpL2) { // 如果 L2 有剩余节点，将其链接到新链表
+        L->Next = tmpL2;
+    }
+
+    // 将原链表的 Next 指针置为空，防止环形链表
+    L1->Next = NULL;
+    L2->Next = NULL;
+
+    // 返回合并后链表的头结点，跳过头节点，返回 head->Next
+    return head;
+}
